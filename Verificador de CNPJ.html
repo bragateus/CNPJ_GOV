@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificador GOV - CNPJ</title>
+    <link rel="icon" type="image/png" href="https://www.mundivox.com/wp-content/uploads/2025/01/favicon.png">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .imagens_top{
+            right: 65px;
+            align-self:first center;
+            
+
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #181688 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            flex-direction: column;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #02459c 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.gov {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+        }
+
+        .result.not-gov {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .status-badge.gov {
+            background: #ffc107;
+            color: #856404;
+        }
+
+        .status-badge.not-gov {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .info-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 5px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .cnae-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255,193,7,0.2);
+            border-radius: 5px;
+            border-left: 4px solid #ffc107;
+        }
+        .topo_pag{
+            padding-bottom: 25px;
+        }
+
+        .social-icons {
+            position: fixed;
+            right: 25px;
+            bottom: 25px;
+            z-index: 999;
+            display: flex;
+            gap: 12px;
+        }
+
+        .social-icons a {
+            margin: 0 10px;
+            display: inline-block;
+        }
+
+        .social-icons .icon {
+            width: 32px;
+            height: 32px;
+            opacity: 0.85;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .social-icons .icon:hover {
+            opacity: 1;
+            transform: scale(1.12);
+        }
+    </style>
+</head>
+<body>
+    <div class="topo_pag"> <img class="imagens_top" width="197" height="45" src="https://www.mundivox.com/wp-content/uploads/2025/01/logo-branca-3.png.webp"></div>
+    <div class="container">
+        <h1>🏛️ Verificador de CNPJ - GOV</h1>
+        <p class="subtitle">Identifique rapidamente se a empresa é classificada como GOV de acordo com a lista de CNAEs.</p>
+        
+        <div class="input-group">
+            <label for="cnpj">CNPJ da Empresa</label>
+            <input type="text" id="cnpj" placeholder="00.000.000/0000-00" maxlength="18">
+        </div>
+
+        <button onclick="verificarEmpresa()">🔍 Verificar Empresa</button>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Consultando dados da Receita Federal...</p>
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <div class="social-icons">
+        <a href="https://github.com/bragateus" target="_blank" title="GitHub">
+            <img src="https://cdn-icons-png.flaticon.com/512/11378/11378785.png" alt="GitHub" class="icon">
+        </a>
+        <a href="https://www.linkedin.com/in/mateus-braga-lima" target="_blank" title="LinkedIn">
+            <img src="https://cdn-icons-png.flaticon.com/512/10092/10092249.png" alt="LinkedIn" class="icon">
+        </a>
+    </div>
+
+    <script>
+        // Nossa Lista de CNAEs GOV
+        const cnaesGov = {
+            '1104': 'Autarquia Federal',
+            '1112': 'Autarquia Estadual ou do Distrito Federal',
+            '1120': 'Autarquia Municipal',
+            '2010': 'Atividades de Organizações Sindicais',
+            '3131': 'Entidade Sindical',
+            '4090': 'Candidato a Cargo Político Eletivo',
+            '3280': 'Comitê Financeiro de Partido Político',
+            '3298': 'Frente Plebiscitária ou Referendária',
+            '3271': 'Órgão de Direção Local de Partido Político',
+            '3255': 'Órgão de Direção Nacional de Partido Político',
+            '3263': 'Órgão de Direção Regional de Partido Político',
+            '1198': 'Comissão Polinacional',
+            '1210': 'Consórcio Público de Direito Público (Associação Pública)',
+            '1228': 'Consórcio Público de Direito Privado',
+            '2011': 'Empresa Pública',
+            '2038': 'Sociedade de Economia Mista',
+            '1236': 'Estado ou Distrito Federal',
+            '1244': 'Município',
+            '1341': 'União',
+            '3069': 'Fundação Privada',
+            '3204': 'Estabelecimento, no Brasil, de Fundação ou Associação Estrangeiras',
+            '3212': 'Fundação ou Associação Domiciliada no Exterior',
+            '1139': 'Fundação Pública de Direito Público Federal',
+            '1147': 'Fundação Pública de Direito Público Estadual ou do Distrito Federal',
+            '1155': 'Fundação Pública de Direito Público Municipal',
+            '1252': 'Fundação Pública de Direito Privado Federal',
+            '1260': 'Fundação Pública de Direito Privado Estadual ou do Distrito Federal',
+            '1279': 'Fundação Pública de Direito Privado Municipal',
+            '1287': 'Fundo Público da Administração Indireta Federal',
+            '1295': 'Fundo Público da Administração Indireta Estadual ou do Distrito Federal',
+            '1309': 'Fundo Público da Administração Indireta Municipal',
+            '1317': 'Fundo Público da Administração Direta Federal',
+            '1325': 'Fundo Público da Administração Direta Estadual ou do Distrito Federal',
+            '1333': 'Fundo Público da Administração Direta Municipal',
+            '5010': 'Organização Internacional',
+            '3220': 'Organização Religiosa',
+            '3301': 'Organização Social (OS)',
+            '3034': 'Serviço Notarial e Registral (Cartório)',
+            '6912-5': 'Serviço Notarial e Registral (Cartório)',
+            '3077': 'Serviço Social Autônomo',
+            '1015': 'Órgão Público do Poder Executivo Federal',
+            '1023': 'Órgão Público do Poder Executivo Estadual ou do Distrito Federal',
+            '1031': 'Órgão Público do Poder Executivo Municipal',
+            '1040': 'Órgão Público do Poder Legislativo Federal',
+            '1058': 'Órgão Público do Poder Legislativo Estadual ou do Distrito Federal',
+            '1066': 'Órgão Público do Poder Legislativo Municipal',
+            '1074': 'Órgão Público do Poder Judiciário Federal',
+            '1082': 'Órgão Público do Poder Judiciário Estadual',
+            '1163': 'Órgão Público Autônomo Federal',
+            '1171': 'Órgão Público Autônomo Estadual ou do Distrito Federal',
+            '1180': 'Órgão Público Autônomo Municipal',
+            '5029': 'Representação Diplomática Estrangeira'
+        };
+
+        
+        document.getElementById('cnpj').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length <= 14) {
+                value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+                value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+                value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+                e.target.value = value;
+            }
+        });
+
+        async function verificarEmpresa() {
+            const cnpjInput = document.getElementById('cnpj').value;
+            const cnpj = cnpjInput.replace(/\D/g, '');
+            
+            if (cnpj.length !== 14) {
+                mostrarErro('Por favor, insira um CNPJ válido com 14 dígitos.');
+                return;
+            }
+
+            mostrarLoading(true);
+            // Tentaivas de APIs de CNPJ e ver qual ele puxa melhor
+            try {
+                // ReceitaWS
+                try {
+                    const response = await fetch(`https://receitaws.com.br/v1/cnpj/${cnpj}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.status !== 'ERROR') {
+                            processarReceitaWS(data);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    console.log('ReceitaWS falhou, tentando próxima API...');
+                }
+
+                // BrasilAPI
+                try {
+                    const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        processarBrasilAPI(data);
+                        return;
+                    }
+                } catch (e) {
+                    console.log('BrasilAPI falhou, tentando próxima API...');
+                }
+
+                // CNPJ.WS
+                try {
+                    const response = await fetch(`https://publica.cnpj.ws/cnpj/${cnpj}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        processarCNPJWS(data);
+                        return;
+                    }
+                } catch (e) {
+                    console.log('CNPJ.WS falhou');
+                }
+
+                throw new Error('Não foi possível consultar o CNPJ');
+                
+            } catch (error) {
+                console.error(error);
+                mostrarErro('Erro ao consultar CNPJ. Verifique sua conexão e tente novamente. As APIs públicas podem estar temporariamente indisponíveis.');
+            } finally {
+                mostrarLoading(false);
+            }
+        }
+
+        function processarReceitaWS(data) {
+            const naturezaJuridica = (data.natureza_juridica || '').split(' - ')[0].trim();
+            const razaoSocial = data.nome || 'Não informada';
+            const nomeFantasia = data.fantasia || '';
+            const cnpj = data.cnpj || '';
+            const situacao = data.situacao || 'Não informada';
+            const cnaeCode = (data.atividade_principal && data.atividade_principal[0] && data.atividade_principal[0].code) ? 
+                             data.atividade_principal[0].code.replace(/[^0-9]/g, '').substring(0, 4) : '';
+            const cnaeDesc = (data.atividade_principal && data.atividade_principal[0]) ? 
+                            data.atividade_principal[0].text : '';
+            const telefone = data.telefone || 'Não informado';
+            const email = data.email || 'Não informado';
+
+            exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email);
+        }
+
+        function processarBrasilAPI(data) {
+            const naturezaJuridica = (data.codigo_natureza_juridica || '').toString();
+            const razaoSocial = data.razao_social || 'Não informada';
+            const nomeFantasia = data.nome_fantasia || '';
+            const cnpj = data.cnpj || '';
+            const situacao = data.descricao_situacao_cadastral || 'Não informada';
+            const cnaeCode = (data.cnae_fiscal || '').toString();
+            const cnaeDesc = data.cnae_fiscal_descricao || '';
+            const telefone = (data.telefone || 'Não informado');
+            const email = (data.email || 'Não informado');
+
+            exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email);
+        }
+
+        function processarCNPJWS(data) {
+            const naturezaJuridica = (data.natureza_juridica && data.natureza_juridica.codigo) ? 
+                                    data.natureza_juridica.codigo.toString() : '';
+            const razaoSocial = data.razao_social || 'Não informada';
+            const nomeFantasia = (data.estabelecimento && data.estabelecimento.nome_fantasia) ? 
+                                data.estabelecimento.nome_fantasia : '';
+            const cnpj = (data.estabelecimento && data.estabelecimento.cnpj) ? 
+                        data.estabelecimento.cnpj : '';
+            const situacao = (data.estabelecimento && data.estabelecimento.situacao_cadastral) ? 
+                           data.estabelecimento.situacao_cadastral : 'Não informada';
+            const cnaeCode = (data.estabelecimento && data.estabelecimento.atividade_principal && 
+                             data.estabelecimento.atividade_principal.subclasse) ? 
+                            data.estabelecimento.atividade_principal.subclasse.replace(/[^0-9]/g, '').substring(0, 4) : '';
+            const cnaeDesc = (data.estabelecimento && data.estabelecimento.atividade_principal && 
+                            data.estabelecimento.atividade_principal.descricao) ? 
+                           data.estabelecimento.atividade_principal.descricao : '';
+            const telefone = (data.estabelecimento && data.estabelecimento.telefone1) ? 
+                    data.estabelecimento.telefone1 : 'Não informado';
+    const email = (data.estabelecimento && data.estabelecimento.email) ? 
+                 data.estabelecimento.email : 'Não informado';
+
+            exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email);
+        }
+
+        function exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email) {
+            const isGov = cnaesGov.hasOwnProperty(naturezaJuridica);
+            const cnaeDescricao = cnaesGov[naturezaJuridica] || '';
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = `result show ${isGov ? 'gov' : 'not-gov'}`;
+            
+            let html = `
+                <div class="status-badge ${isGov ? 'gov' : 'not-gov'}">
+                    ${isGov ? '🏛️ EMPRESA GOV' : '🏢 NÃO É GOV'}
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">CNPJ:</span>
+                    <span class="info-value">${formatarCNPJ(cnpj.replace(/\D/g, ''))}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Razão Social:</span>
+                    <span class="info-value">${razaoSocial}</span>
+                </div>
+            `;
+
+            if (nomeFantasia && nomeFantasia.trim() !== '' && nomeFantasia !== razaoSocial) {
+                html += `
+                    <div class="info-item">
+                        <span class="info-label">Nome Fantasia:</span>
+                        <span class="info-value">${nomeFantasia}</span>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="info-item">
+                    <span class="info-label">Situação:</span>
+                    <span class="info-value">${situacao}</span>
+                </div>
+                
+                <div class="info-item">
+                    <span class="info-label">Natureza Jurídica:</span>
+                    <span class="info-value">${naturezaJuridica}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Telefone:</span>
+                    <span class="info-value">${telefone}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">E-mail:</span>
+                    <span class="info-value">${email}</span>
+                </div>
+            `;
+
+            if (isGov && cnaeDescricao) {
+                html += `
+                    <div class="cnae-info">
+                        <strong>📋 Classificação GOV:</strong><br>
+                        ${cnaeDescricao}
+                    </div>
+                `;
+            }
+
+            if (cnaeCode) {
+                html += `
+                    <div class="info-item">
+                        <span class="info-label">CNAE Principal:</span>
+                        <span class="info-value">${cnaeCode} - ${cnaeDesc}</span>
+                    </div>
+                `;
+            }
+
+            resultDiv.innerHTML = html;
+        }
+
+        function formatarCNPJ(cnpj) {
+            return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5');
+        }
+
+        function mostrarErro(mensagem) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result show error';
+            resultDiv.innerHTML = `
+                <div class="status-badge" style="background: #dc3545; color: white;">❌ ERRO</div>
+                <div class="info-item">
+                    <span class="info-value">${mensagem}</span>
+                </div>
+            `;
+        }
+
+        function mostrarLoading(show) {
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            if (show) {
+                loading.classList.add('show');
+                result.classList.remove('show');
+            } else {
+                loading.classList.remove('show');
+            }
+        }
+
+        document.getElementById('cnpj').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verificarEmpresa();
+            }
+        });
+        // Braga*
+    </script>
+</body>
+</html>
