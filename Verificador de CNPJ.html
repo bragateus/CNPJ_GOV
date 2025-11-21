@@ -405,6 +405,29 @@
             }
         }
 
+        // --- NOVAS FUNÇÕES / AJUSTES PARA DETECTAR ISP ---
+        function normalizeCNAE(code) {
+            return (code || '').toString().replace(/\D/g, '');
+        }
+
+        function containsISPFromArray(arr) {
+            if (!arr || !Array.isArray(arr)) return false;
+            const target = '6190699'; // "61.90-6-99" sem caracteres
+            return arr.some(item => {
+                let code = '';
+                if (!item) return false;
+                if (typeof item === 'string') code = item;
+                else if (item.code) code = item.code;
+                else if (item.codigo) code = item.codigo;
+                else if (item.subclasse) code = item.subclasse;
+                else if (item.cnae) code = item.cnae;
+                else if (item.cnae_fiscal) code = item.cnae_fiscal;
+                // normalize and compare
+                const n = normalizeCNAE(code);
+                return n === target || n.includes(target);
+            });
+        }
+
         function processarReceitaWS(data) {
             const naturezaJuridica = (data.natureza_juridica || '').split(' - ')[0].trim();
             const razaoSocial = data.nome || 'Não informada';
@@ -418,7 +441,11 @@
             const telefone = data.telefone || 'Não informado';
             const email = data.email || 'Não informado';
 
-            exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email);
+            // Extrair atividades secundárias de forma defensiva (diversas APIs usam nomes diferentes)
+            const secundarias = data.atividades_secundarias || data.atividade_secundaria || data.atividades_secundarias || [];
+            const isISP = containsISPFromArray(secundarias);
+
+            exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email, isISP);
         }
 
         function processarBrasilAPI(data) {
@@ -432,7 +459,11 @@
             const telefone = (data.telefone || 'Não informado');
             const email = (data.email || 'Não informado');
 
-            exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email);
+            // BrasilAPI pode expor cnaes secundários em cnaes_secundarios ou cnaes
+            const secundarias = data.cnaes_secundarios || data.cnaes || data.cnaes_fiscais || [];
+            const isISP = containsISPFromArray(secundarias);
+
+            exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email, isISP);
         }
 
         function processarCNPJWS(data) {
@@ -453,13 +484,17 @@
                            data.estabelecimento.atividade_principal.descricao : '';
             const telefone = (data.estabelecimento && data.estabelecimento.telefone1) ? 
                     data.estabelecimento.telefone1 : 'Não informado';
-    const email = (data.estabelecimento && data.estabelecimento.email) ? 
+            const email = (data.estabelecimento && data.estabelecimento.email) ? 
                  data.estabelecimento.email : 'Não informado';
 
-            exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email);
+            // CNPJ.WS costuma ter estabelecimento.atividades_secundarias (array de objetos)
+            const secundarias = (data.estabelecimento && (data.estabelecimento.atividades_secundarias || data.estabelecimento.atividade_secundaria)) || [];
+            const isISP = containsISPFromArray(secundarias);
+
+            exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email, isISP);
         }
 
-        function exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email) {
+        function exibirResultado(naturezaJuridica, razaoSocial, nomeFantasia, cnpj, situacao, cnaeCode, cnaeDesc, telefone, email, isISP) {
             const isGov = cnaesGov.hasOwnProperty(naturezaJuridica);
             const cnaeDescricao = cnaesGov[naturezaJuridica] || '';
 
@@ -525,6 +560,16 @@
                     <div class="info-item">
                         <span class="info-label">CNAE Principal:</span>
                         <span class="info-value">${cnaeCode} - ${cnaeDesc}</span>
+                    </div>
+                `;
+            }
+
+            // Mostra indicador ISP se CNAE secundário correspondente estiver presente
+            if (isISP) {
+                html += `
+                    <div class="info-item" style="background: rgba(0,123,255,0.08); border-left: 4px solid #007bff;">
+                        <strong>🌐 ISP:</strong>
+                        <span class="info-value">Possui atividade secundária "61.90-6-99 - Outras atividades de telecomunicações" — Empresa de Telecomunicações (ISP).</span>
                     </div>
                 `;
             }
